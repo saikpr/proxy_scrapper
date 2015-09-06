@@ -1,3 +1,4 @@
+from __future__ import print_function
 import urllib2,urllib,sys
 from urllib2 import URLError
 import threading
@@ -5,8 +6,9 @@ from time import time
 THREAD_COUNT=250
 PROXY_TIMEOUT=50
 
-
-
+count_total=0
+count_found=0
+count_failed=0
 class proxyTestThread(threading.Thread):
     def __init__(self,pxy_url,fil_out):
         threading.Thread.__init__(self)
@@ -23,16 +25,17 @@ def proxy_url_generator(pxy_url):
         #print  k
         user_name=k[1].split("Username:")[1]
         #print urllib.quote(user_name)
-        password=k[2].split("Password:")[1]
+        password=k[2].split("Password:")[1].split("\n")[0]
         #print urllib.quote(password)
         proxy_str='http://'+user_name+":"+password+"@"+proxy_url
         return proxy_str
 
     except IndexError:
-        print pxy_url
+        print ("Error with" +pxy_url)
         return None
 def proxy_tester(pxy_url,fil_out):
     #print "Testing: "+pxy_url
+    global count_found,count_failed
     proxy = urllib2.ProxyHandler({'http': pxy_url})
     auth = urllib2.HTTPBasicAuthHandler()
     opener = urllib2.build_opener(proxy, auth, urllib2.HTTPHandler)
@@ -44,13 +47,17 @@ def proxy_tester(pxy_url,fil_out):
         #print response.code
         if response.code == 200:
             fil_out.write( "Found: "+pxy_url+"\n")
-            print "Found: "+pxy_url
+            print ("Found: "+pxy_url)
+            count_found+=1
+        count_failed+=1
         response.close()
     except urllib2.HTTPError as k:
         #print k
+        count_failed+=1
         pass
     except :
         #print "Timed Out :"+pxy_url
+        count_failed+=1
         pass
 if __name__=="__main__":
 
@@ -59,12 +66,17 @@ if __name__=="__main__":
     array = []
     for a in fil:
         final_url=proxy_url_generator(a)
-        temp=proxyTestThread(final_url,fil_out)
-        if temp != None:
+
+        if final_url != None:
+            print (final_url)
+            temp=proxyTestThread(final_url,fil_out)
             array.append(temp)
-    print "Appended Proxy Url"
-    print "Count "+str(len(array))
+    print ("Appended Proxy Url")
+    print ("Count "+str(len(array)))
+    count_total=len(array)
     running_array=[]
+    i=0
+    print ("count_found / count_failed / count_total")
     while array!=[]:
         k=THREAD_COUNT
         while(k>0 and array!=[]):
@@ -79,3 +91,4 @@ if __name__=="__main__":
             thread_runner.join()
             running_array.remove(thread_runner)
             k=k-1
+            print(str(count_found)+"/"+str(count_failed)+"/"+str(count_total), end='\r')
