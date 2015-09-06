@@ -1,37 +1,24 @@
 from __future__ import print_function
-
-import logging
+#import logging
 import sys
 from collections import Counter
 
 from scapy.layers.l2 import Ether
 from scapy.layers.inet import IP, TCP
 
-from pcapng import PcapngReader
-from pcapng.objects import EnhancedPacket
-
-
-logger = logging.getLogger('pcapng')
-logger.setLevel(logging.INFO)  # Debug will slow things down a lot!
-
-handler = logging.StreamHandler(sys.stderr)
-formatter = logging.Formatter(
-    '\033[1;37;40m  %(levelname)s  \033[0m \033[0;32m%(message)s\033[0m')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
+from pcapng import FileScanner
+from pcapng.blocks import EnhancedPacket
 
 if __name__ == '__main__':
-    import sys
-    f = open("test.pcapng", "rb")
-    rdr = PcapngReader(f)
+    f = open(str(sys.argv[1]), "rb")
+    rdr = FileScanner(f)
 
 
     for block in rdr:
         # print(repr(block))
 
         if isinstance(block, EnhancedPacket):
-            assert block._interface.link_type == 1  # must be ethernet!
+            assert block.interface.link_type == 1  # must be ethernet!
 
             decoded = Ether(block.packet_data)
             # print(repr(Ether(block.packet_data))[:400] + '...')
@@ -45,6 +32,6 @@ if __name__ == '__main__':
                 if isinstance(_pl2, TCP):
                     _src = '{0}:{1}'.format(_pl1.dst, _pl2.dport)
                     _dst = '{0}:{1}'.format(_pl1.src, _pl2.sport)
-                    print (str("Proxy :")+ str(_src))
+                    print (str("Proxy-AIP:")+ str(_src))
                     print (_pl2)
 

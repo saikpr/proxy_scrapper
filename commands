@@ -1,4 +1,0 @@
-python packet_extract.py |grep --binary-files=text Proxy >allhost_proxy_clear.dat
-python textscrapper.py
-cat allhost_proxy_clear_out.dat |sort |uniq >proxy_clear_2.txt
-python sanitize.py
