@@ -17,17 +17,20 @@ class proxyTestThread(threading.Thread):
 
 def proxy_url_generator(pxy_url):
     #Proxy:10.1.1.10:80 Username:002.9802 Password:kavita
-    k=pxy_url.split(" ")
-    proxy_url= k[0].split("Proxy:")[1]
-    #print  k
-    user_name=k[1].split("Username:")[1]
-    #print urllib.quote(user_name)
-    password=k[2].split("Password:")[1]
-    #print urllib.quote(password)
-    proxy_str='http://'+user_name+":"+password+"@"+proxy_url
+    try:
+        k=pxy_url.split(" ")
+        proxy_url= k[0].split("Proxy:")[1]
+        #print  k
+        user_name=k[1].split("Username:")[1]
+        #print urllib.quote(user_name)
+        password=k[2].split("Password:")[1]
+        #print urllib.quote(password)
+        proxy_str='http://'+user_name+":"+password+"@"+proxy_url
+        return proxy_str
 
-    return proxy_str
-
+    except IndexError:
+        print pxy_url
+        return None
 def proxy_tester(pxy_url,fil_out):
     #print "Testing: "+pxy_url
     proxy = urllib2.ProxyHandler({'http': pxy_url})
@@ -55,10 +58,12 @@ if __name__=="__main__":
     fil_out=open(str(sys.argv[2]),"w")
     array = []
     for a in fil:
-        a=a[1:-2]
         final_url=proxy_url_generator(a)
-        array.append(proxyTestThread(final_url,fil_out))
-
+        temp=proxyTestThread(final_url,fil_out)
+        if temp != None:
+            array.append(temp)
+    print "Appended Proxy Url"
+    print "Count "+str(len(array))
     running_array=[]
     while array!=[]:
         k=THREAD_COUNT
