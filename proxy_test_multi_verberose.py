@@ -5,7 +5,7 @@ import threading
 from time import time
 THREAD_COUNT=250
 PROXY_TIMEOUT=50
-
+JOIN_TIMEOUT=3
 count_total=0
 count_found=0
 count_failed=0
@@ -49,7 +49,8 @@ def proxy_tester(pxy_url,fil_out):
             fil_out.write( "Found: "+pxy_url+"\n")
             print ("Found: "+pxy_url)
             count_found+=1
-        count_failed+=1
+        else:
+            count_failed+=1
         response.close()
     except urllib2.HTTPError as k:
         #print k
@@ -68,7 +69,7 @@ if __name__=="__main__":
         final_url=proxy_url_generator(a)
 
         if final_url != None:
-            print (final_url)
+            # print (final_url)
             temp=proxyTestThread(final_url,fil_out)
             array.append(temp)
     print ("Appended Proxy Url")
@@ -88,7 +89,8 @@ if __name__=="__main__":
         k=THREAD_COUNT
         while(k>0 and running_array!=[]):
             thread_runner=running_array[0]
-            thread_runner.join()
-            running_array.remove(thread_runner)
-            k=k-1
-            print(str(count_found)+"/"+str(count_failed)+"/"+str(count_total), end='\r')
+            thread_runner.join(timeout=JOIN_TIMEOUT)
+            if thread_runner.isAlive()==False:
+                running_array.remove(thread_runner)
+                k=k-1
+                print(str(count_found)+"/"+str(count_failed)+"/"+str(count_total), end='\r')
